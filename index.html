@@ -184,13 +184,21 @@
             </div>
         </div>
 
-        <!-- Hall of Fame list (always visible below) -->
-        <div id="hall" class="hall">
-            <h2 style="margin-bottom: 20px; color: #a78bfa;">Hall of Fame</h2>
-            <div class="hall-list" id="hall-list">
-                <p>Loading participants...</p>
-            </div>
-        </div>
+<!-- Hall of Fame list (always visible below) -->
+<div id="hall" class="hall">
+    <h2 style="margin-bottom: 20px; color: #a78bfa;">Hall of Fame</h2>
+
+    <!-- Кнопка сортировки — вставляем сюда -->
+    <div style="margin: 0 0 16px 0; text-align: right;">
+        <button id="sort-btn" style="padding: 8px 16px; font-size: 1rem; background: #4a3a99; color: #e0e0ff; border: none; border-radius: 6px; cursor: pointer; transition: background 0.2s;">
+            Newest first ▼
+        </button>
+    </div>
+
+    <div class="hall-list" id="hall-list">
+        <p>Loading participants...</p>
+    </div>
+</div>
 
     </div>
 
@@ -225,8 +233,11 @@ document.getElementById("submit-btn").addEventListener("click", () => {
         // Load Hall of Fame from Google Sheet (CSV export)
         // IMPORTANT: Make sure the spreadsheet is shared publicly ("Anyone with the link" → Viewer)
         const SHEET_ID = "1TKM4CuHTfiR_fGZhYCEKZ5GQcjX6W9oQkS_NlC9TFkg";
-        const GID = "567171541";  // gid of the sheet with responses
+        const GID = "567171541";
         const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
+
+        let sortNewestFirst = true;     // по умолчанию новые сверху
+        let allRows = [];               // сохраним все строки
 
         fetch(csvUrl)
             .then(response => {
@@ -234,85 +245,108 @@ document.getElementById("submit-btn").addEventListener("click", () => {
                 return response.text();
             })
             .then(csvText => {
-                const rows = csvText.split("\n").slice(1); // skip header
-                const container = document.getElementById("hall-list");
-                container.innerHTML = "";
+                allRows = csvText.split("\n").slice(1); // сохраняем один раз
 
-                if (rows.length === 0 || rows[0].trim() === "") {
-                    container.innerHTML = "<p>No participants yet. Be the first!</p>";
-                    return;
+                renderHall(); // первая отрисовка
+
+                // Обработчик кнопки сортировки
+                const sortBtn = document.getElementById("sort-btn");
+                if (sortBtn) {
+                    sortBtn.addEventListener("click", () => {
+                        sortNewestFirst = !sortNewestFirst;
+                        sortBtn.textContent = sortNewestFirst ? "Newest first ▼" : "Oldest first ▲";
+                        renderHall();
+                    });
+                } else {
+                    console.warn("Кнопка sort-btn не найдена в DOM");
                 }
-
-rows.forEach(row => {
-    if (!row.trim()) return;
-
-    const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-
-    // Берём имя, ссылку, страну — они всегда на тех же местах
-    const nameRaw  = (cols[2] || "").trim().replace(/^"|"$/g, "") || "Anonymous";
-    const linkRaw  = (cols[3] || "").trim().replace(/^"|"$/g, "") || "";
-    const country  = (cols[4] || "").trim().replace(/^"|"$/g, "") || "";
-
-    // Проверяем наличие и значение столбца Approve (индекс 5)
-    let show = true;  // по умолчанию показываем
-
-    if (cols.length >= 6) {
-        const approve = (cols[5] || "").trim().toLowerCase().replace(/^"|"$/g, "");
-        show = (approve === "yes" || approve === "1" || approve === "true");
-    }
-
-    if (!show) return;
-
-    // Парсим дату из cols[0] — формат "24.02.2026 16:49:24"
-    let datePart = "";
-    if (cols[0]) {
-        const timestamp = cols[0].trim().replace(/^"|"$/g, "");
-        const dateStr = timestamp.split(" ")[0]; // берём только "24.02.2026"
-
-        if (dateStr && dateStr.includes(".")) {
-            const [day, month, year] = dateStr.split(".");
-            if (day && month && year) {
-                const months = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                const m = parseInt(month, 10);
-                if (m >= 1 && m <= 12) {
-                    datePart = `${day} ${months[m]} ${year}`;
-                }
-            }
-        }
-    }
-
-    // Обработка ссылки
-    let link = linkRaw;
-    if (link && !link.match(/^https?:\/\//i)) {
-        link = "https://" + link;
-    }
-
-    const display = link 
-        ? `<a href="${link}" target="_blank" rel="noopener noreferrer">${nameRaw}</a>`
-        : nameRaw;
-
-    const countryPart = country ? `, <span class="country">${country}</span>` : "";
-    const dateSpan    = datePart  ? `, <span class="date">${datePart}</span>`   : "";
-
-    const div = document.createElement("div");
-    div.className = "player";
-    div.innerHTML = `${display}${countryPart}${dateSpan}`;
-    container.appendChild(div);
-});
             })
             .catch(err => {
                 console.error(err);
-                document.getElementById("hall-list").innerHTML = 
-                    "<p>Could not load Hall of Fame. Make sure the sheet is shared publicly (Anyone with the link → Viewer).</p>";
+                const hallList = document.getElementById("hall-list");
+                if (hallList) {
+                    hallList.innerHTML = "<p>Could not load Hall of Fame. Make sure the sheet is shared publicly (Anyone with the link → Viewer).</p>";
+                }
             });
+
+        // Функция отрисовки списка участников
+        function renderHall() {
+            const container = document.getElementById("hall-list");
+            if (!container) return;
+
+            container.innerHTML = "";
+
+            let rowsToShow = [...allRows];
+
+            if (!sortNewestFirst) {
+                rowsToShow.reverse();
+            }
+
+            if (rowsToShow.length === 0) {
+                container.innerHTML = "<p>No participants yet. Be the first!</p>";
+                return;
+            }
+
+            rowsToShow.forEach(row => {
+                if (!row.trim()) return;
+
+                const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+
+                const nameRaw  = (cols[2] || "").trim().replace(/^"|"$/g, "") || "Anonymous";
+                const linkRaw  = (cols[3] || "").trim().replace(/^"|"$/g, "") || "";
+                const country  = (cols[4] || "").trim().replace(/^"|"$/g, "") || "";
+
+                let show = true;
+                if (cols.length >= 6) {
+                    const approve = (cols[5] || "").trim().toLowerCase().replace(/^"|"$/g, "");
+                    show = (approve === "yes" || approve === "1" || approve === "true");
+                }
+
+                if (!show) return;
+
+                let datePart = "";
+                if (cols[0]) {
+                    const timestamp = cols[0].trim().replace(/^"|"$/g, "");
+                    const dateStr = timestamp.split(" ")[0];
+
+                    if (dateStr && dateStr.includes(".")) {
+                        const [day, month, year] = dateStr.split(".");
+                        if (day && month && year) {
+                            const months = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                            const m = parseInt(month, 10);
+                            if (m >= 1 && m <= 12) {
+                                datePart = `${day} ${months[m]} ${year}`;
+                            }
+                        }
+                    }
+                }
+
+                let link = linkRaw;
+                if (link && !link.match(/^https?:\/\//i)) {
+                    link = "https://" + link;
+                }
+
+                const display = link 
+                    ? `<a href="${link}" target="_blank" rel="noopener noreferrer">${nameRaw}</a>`
+                    : nameRaw;
+
+                const countryPart = country ? `, <span class="country">${country}</span>` : "";
+                const dateSpan    = datePart  ? `, <span class="date">${datePart}</span>`   : "";
+
+                const div = document.createElement("div");
+                div.className = "player";
+                div.innerHTML = `${display}${countryPart}${dateSpan}`;
+                container.appendChild(div);
+            });
+        }
     </script>
 
-<div class="main-content">
-    <p style="text-align: center; max-width: 600px; margin: 0 auto;">
-        This is the official site for the Safe Cracking game.<br>
-        Check our <a href="https://sites.google.com/view/safecrackinggame/english">Privacy Policy</a>.
-    </p>
-</div>
+    <div class="main-content">
+        <p style="text-align: center; max-width: 600px; margin: 0 auto;">
+            This is the official site for the Safe Cracking game.<br>
+            Check our <a href="https://sites.google.com/view/safecrackinggame/english">Privacy Policy</a>.
+        </p>
+    </div>
 
 </body>
 </html>
