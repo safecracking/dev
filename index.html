@@ -128,6 +128,10 @@
             color: #a0a0cc;
             font-size: 0.95rem;
         }
+        .date {
+        color: #a0a0cc;
+        font-size: 0.95rem;
+        }
         a.external {
             color: #a78bfa;
             text-decoration: none;
@@ -166,7 +170,7 @@
         <div id="success" class="success" style="display:none;">
             <p>Congratulations! If you entered the correct password, it means you did a great job cracking many safes in Safe Cracking!<br>
             This is the official Hall of Fame — everyone who gets here has earned the right to leave their mark.<br>
-            Fill out the form below and your details will appear in the Hall of Fame after review (usually within a day or two).</p>
+            Fill out the form below and your details will appear in the Hall of Fame of Safe Cracking.</p>
 
             <div class="form-embed">
                 <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSe2KOeYhkpLIegUIoiYt_V0OOD-zp7_nZpJofZAkUSZXBl_JA/viewform?embedded=true" 
@@ -247,14 +251,30 @@ rows.forEach(row => {
 
     if (cols.length >= 6) {
         const approve = (cols[5] || "").trim().toLowerCase().replace(/^"|"$/g, "");
-        // Показываем только если явно указано "да"
         show = (approve === "yes" || approve === "1" || approve === "true");
     }
-    // Если столбца нет (length < 6) → show остаётся true
 
     if (!show) return;
 
-    // Дальше обычная обработка ссылки и вывода
+    // Парсим дату из cols[0] — формат "24.02.2026 16:49:24"
+    let datePart = "";
+    if (cols[0]) {
+        const timestamp = cols[0].trim().replace(/^"|"$/g, "");
+        const dateStr = timestamp.split(" ")[0]; // берём только "24.02.2026"
+
+        if (dateStr && dateStr.includes(".")) {
+            const [day, month, year] = dateStr.split(".");
+            if (day && month && year) {
+                const months = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                const m = parseInt(month, 10);
+                if (m >= 1 && m <= 12) {
+                    datePart = `${day} ${months[m]} ${year}`;
+                }
+            }
+        }
+    }
+
+    // Обработка ссылки
     let link = linkRaw;
     if (link && !link.match(/^https?:\/\//i)) {
         link = "https://" + link;
@@ -265,10 +285,11 @@ rows.forEach(row => {
         : nameRaw;
 
     const countryPart = country ? `, <span class="country">${country}</span>` : "";
+    const dateSpan    = datePart  ? `, <span class="date">${datePart}</span>`   : "";
 
     const div = document.createElement("div");
     div.className = "player";
-    div.innerHTML = `${display}${countryPart}`;
+    div.innerHTML = `${display}${countryPart}${dateSpan}`;
     container.appendChild(div);
 });
             })
