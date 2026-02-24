@@ -232,15 +232,20 @@
                     return;
                 }
 
-                rows.forEach(row => {
-                    if (!row.trim()) return;
-                    const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // handle commas inside quotes
-                    if (cols.length < 5) return;
+rows.forEach(row => {
+    if (!row.trim()) return;
+    const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // оставляем как есть
+    if (cols.length < 6) return;  // ← изменили с <5 на <6 (теперь минимум 6 столбцов)
 
-                    // columns: 0=Timestamp, 1=Email, 2=Your name, 3=Link, 4=Your country
-                    const nameRaw  = cols[2]?.trim().replace(/^"|"$/g, "") || "Anonymous";
-                    const linkRaw  = cols[3]?.trim().replace(/^"|"$/g, "") || "";
-                    const country  = cols[4]?.trim().replace(/^"|"$/g, "") || "";
+    // columns: 0=Timestamp, 1=Email, 2=Name, 3=Link, 4=Country, 5=Approve
+    const approve = (cols[5] || "").trim().toLowerCase().replace(/^"|"$/g, "");
+
+    // Показываем запись ТОЛЬКО если approve === 'yes'
+    if (approve !== 'yes') return;
+
+    const nameRaw  = cols[2]?.trim().replace(/^"|"$/g, "") || "Anonymous";
+    const linkRaw  = cols[3]?.trim().replace(/^"|"$/g, "") || "";
+    const country  = cols[4]?.trim().replace(/^"|"$/g, "") || "";
 
                     let link = linkRaw;
                     if (link && !link.match(/^https?:\/\//i)) link = "https://" + link;
