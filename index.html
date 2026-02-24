@@ -232,12 +232,13 @@ document.getElementById("submit-btn").addEventListener("click", () => {
 
         // Load Hall of Fame from Google Sheet (CSV export)
         // IMPORTANT: Make sure the spreadsheet is shared publicly ("Anyone with the link" → Viewer)
+        // Load Hall of Fame from Google Sheet (CSV export)
         const SHEET_ID = "1TKM4CuHTfiR_fGZhYCEKZ5GQcjX6W9oQkS_NlC9TFkg";
         const GID = "567171541";
         const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${GID}`;
 
         let sortNewestFirst = true;     // по умолчанию новые сверху
-        let allRows = [];               // сохраним все строки
+        let allRows = [];
 
         fetch(csvUrl)
             .then(response => {
@@ -246,10 +247,9 @@ document.getElementById("submit-btn").addEventListener("click", () => {
             })
             .then(csvText => {
                 allRows = csvText.split("\n").slice(1); // сохраняем один раз
-                rows = rows.reverse();
-                renderHall(); // первая отрисовка
 
-                // Обработчик кнопки сортировки
+                renderHall(); // первая отрисовка — новые сверху
+
                 const sortBtn = document.getElementById("sort-btn");
                 if (sortBtn) {
                     sortBtn.addEventListener("click", () => {
@@ -257,8 +257,6 @@ document.getElementById("submit-btn").addEventListener("click", () => {
                         sortBtn.textContent = sortNewestFirst ? "Newest first ▼" : "Oldest first ▲";
                         renderHall();
                     });
-                } else {
-                    console.warn("Кнопка sort-btn не найдена в DOM");
                 }
             })
             .catch(err => {
@@ -269,7 +267,7 @@ document.getElementById("submit-btn").addEventListener("click", () => {
                 }
             });
 
-        // Функция отрисовки списка участников
+        // Функция отрисовки
         function renderHall() {
             const container = document.getElementById("hall-list");
             if (!container) return;
@@ -278,9 +276,11 @@ document.getElementById("submit-btn").addEventListener("click", () => {
 
             let rowsToShow = [...allRows];
 
-            if (!sortNewestFirst) {
+            // По умолчанию новые сверху — переворачиваем массив
+            if (sortNewestFirst) {
                 rowsToShow.reverse();
             }
+            // Если !sortNewestFirst — оставляем как есть (старые сверху, новые снизу)
 
             if (rowsToShow.length === 0) {
                 container.innerHTML = "<p>No participants yet. Be the first!</p>";
