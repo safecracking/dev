@@ -160,12 +160,15 @@
         </div>
 
         <!-- Password input -->
-        <div class="password-section" id="password-section">
-            <label>Main Password:</label>
-            <input type="password" id="password-input" placeholder="Enter password">
-            <button id="submit-btn">Submit</button>
-            <span id="error"></span>
-        </div>
+<div class="password-section" id="password-section">
+    <label>Main Password:</label>
+    <input type="password" id="password-input" placeholder="Enter password">
+    <button id="submit-btn">Submit</button>
+    <span id="error"></span>
+    <small id="password-hint" style="display: none; color: #a0a0cc; font-size: 0.9rem; margin-top: 8px;">
+        Note: the password in the game changes periodically. Follow the game updates.
+    </small>
+</div>
 
         <!-- Success block + form (hidden initially) -->
         <div id="success" class="success" style="display:none;">
@@ -195,19 +198,22 @@
         const CORRECT_PASSWORD_LOWER = "8ph3nvl7";  // lowercase version for case-insensitive check
 
         // Password check
-        document.getElementById("submit-btn").addEventListener("click", () => {
-            const input = document.getElementById("password-input").value.trim();
-            const errorEl = document.getElementById("error");
+document.getElementById("submit-btn").addEventListener("click", () => {
+    const input = document.getElementById("password-input").value.trim();
+    const errorEl = document.getElementById("error");
+    const hintEl = document.getElementById("password-hint");
 
-            if (input.toLowerCase() === CORRECT_PASSWORD_LOWER) {
-                document.getElementById("intro").style.display = "none";
-                document.getElementById("password-section").style.display = "none";
-                document.getElementById("success").style.display = "block";
-                errorEl.textContent = "";
-            } else {
-                errorEl.textContent = "Wrong Password, try again";
-            }
-        });
+    if (input.toLowerCase() === CORRECT_PASSWORD_LOWER) {
+        document.getElementById("intro").style.display = "none";
+        document.getElementById("password-section").style.display = "none";
+        document.getElementById("success").style.display = "block";
+        errorEl.textContent = "";
+        hintEl.style.display = "none";  // скрываем подсказку при успехе
+    } else {
+        errorEl.textContent = "Wrong Password, try again";
+        hintEl.style.display = "block";  // показываем подсказку при ошибке
+    }
+});
 
         // Allow Enter key to submit
         document.getElementById("password-input").addEventListener("keypress", (e) => {
