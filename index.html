@@ -234,33 +234,43 @@
 
 rows.forEach(row => {
     if (!row.trim()) return;
-    const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // оставляем как есть
-    if (cols.length < 6) return;  // ← изменили с <5 на <6 (теперь минимум 6 столбцов)
 
-    // columns: 0=Timestamp, 1=Email, 2=Name, 3=Link, 4=Country, 5=Approve
-    const approve = (cols[5] || "").trim().toLowerCase().replace(/^"|"$/g, "");
+    const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
 
-    // Показываем запись ТОЛЬКО если approve === 'yes'
-    if (approve !== 'yes') return;
+    // Берём имя, ссылку, страну — они всегда на тех же местах
+    const nameRaw  = (cols[2] || "").trim().replace(/^"|"$/g, "") || "Anonymous";
+    const linkRaw  = (cols[3] || "").trim().replace(/^"|"$/g, "") || "";
+    const country  = (cols[4] || "").trim().replace(/^"|"$/g, "") || "";
 
-    const nameRaw  = cols[2]?.trim().replace(/^"|"$/g, "") || "Anonymous";
-    const linkRaw  = cols[3]?.trim().replace(/^"|"$/g, "") || "";
-    const country  = cols[4]?.trim().replace(/^"|"$/g, "") || "";
+    // Проверяем наличие и значение столбца Approve (индекс 5)
+    let show = true;  // по умолчанию показываем
 
-                    let link = linkRaw;
-                    if (link && !link.match(/^https?:\/\//i)) link = "https://" + link;
+    if (cols.length >= 6) {
+        const approve = (cols[5] || "").trim().toLowerCase().replace(/^"|"$/g, "");
+        // Показываем только если явно указано "да"
+        show = (approve === "yes" || approve === "1" || approve === "true");
+    }
+    // Если столбца нет (length < 6) → show остаётся true
 
-                    const display = link 
-                        ? `<a href="${link}" target="_blank" rel="noopener noreferrer">${nameRaw}</a>`
-                        : nameRaw;
+    if (!show) return;
 
-                    const countryPart = country ? `, <span class="country">${country}</span>` : "";
+    // Дальше обычная обработка ссылки и вывода
+    let link = linkRaw;
+    if (link && !link.match(/^https?:\/\//i)) {
+        link = "https://" + link;
+    }
 
-                    const div = document.createElement("div");
-                    div.className = "player";
-                    div.innerHTML = `${display}${countryPart}`;
-                    container.appendChild(div);
-                });
+    const display = link 
+        ? `<a href="${link}" target="_blank" rel="noopener noreferrer">${nameRaw}</a>`
+        : nameRaw;
+
+    const countryPart = country ? `, <span class="country">${country}</span>` : "";
+
+    const div = document.createElement("div");
+    div.className = "player";
+    div.innerHTML = `${display}${countryPart}`;
+    container.appendChild(div);
+});
             })
             .catch(err => {
                 console.error(err);
