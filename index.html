@@ -246,7 +246,7 @@ document.getElementById("submit-btn").addEventListener("click", () => {
             })
             .then(csvText => {
                 allRows = csvText.split("\n").slice(1); // сохраняем один раз
-
+                rows = rows.reverse();
                 renderHall(); // первая отрисовка
 
                 // Обработчик кнопки сортировки
