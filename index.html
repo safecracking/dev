@@ -179,6 +179,25 @@ footer a {
 footer a:hover {
     text-decoration: underline;
 }
+
+.sort-btn {
+    padding: 10px 18px;
+    font-size: 1rem;
+    background: #6b48ff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.05s;
+}
+
+.sort-btn:hover {
+    background: #7c5aff;
+}
+
+.sort-btn:active {
+    transform: translateY(1px);
+}
     </style>
         <!-- Favicon -->
     <link rel="icon" href="/open.png" type="image/png">
@@ -202,11 +221,17 @@ footer a:hover {
 
 <!-- Hall of Fame list (always visible below) -->
 <div id="hall" class="hall">
-    <h2 style="margin-bottom: 20px; color: #a78bfa; font-size: 2.2rem;">🏆Hall of Fame🏆</h2>
+    <h2 style="margin-bottom: 6px; color: #a78bfa; font-size: 2.2rem;">🏆Hall of Fame🏆</h2>
 
-    <div style="margin:0 0 16px 0;text-align:right;">
-        <button id="sort-btn">Sort by Coins 💰</button>
-    </div>
+<div style="font-size:0.95rem;color:#a0a0cc;margin-bottom:16px;">
+    Ranking of our champions
+</div>
+
+    <div style="margin-bottom:28px;">
+    <button id="sort-btn" class="sort-btn">
+        Sort by Coins 💰
+    </button>
+</div>
 
     <div class="hall-list" id="hall-list">
         <p>Loading participants...</p>
