@@ -294,7 +294,7 @@ function renderPlayers() {
         sorted.sort((a,b) => b.coins - a.coins);
     }
 
-    sorted.forEach(player => {
+    sorted.forEach((player, index) => {
 
         const name = player.nickname || "Anonymous";
         const country = player.country || "";
@@ -317,9 +317,10 @@ function renderPlayers() {
         div.className = "player";
 
         div.innerHTML =
-            displayName +
-            ` <span class="country">(${country})</span>` +
-            `<br>⏱ ${time} | 💰 ${coins.toLocaleString()}`;
+    `<strong>${index + 1}.</strong> ` +
+    displayName +
+    ` <span class="country">(${country})</span>` +
+    `<br>⏱ ${time} | 💰 ${coins.toLocaleString()}`;
 
         container.appendChild(div);
 
