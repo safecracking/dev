@@ -204,11 +204,8 @@ footer a:hover {
 <div id="hall" class="hall">
     <h2 style="margin-bottom: 20px; color: #a78bfa; font-size: 2.2rem;">🏆Hall of Fame🏆</h2>
 
-    <!-- Кнопка сортировки — вставляем сюда -->
-    <div style="margin: 0 0 16px 0; text-align: right;">
-        <button id="sort-btn" style="padding: 8px 16px; font-size: 1rem; background: #4a3a99; color: #e0e0ff; border: none; border-radius: 6px; cursor: pointer; transition: background 0.2s;">
-            Newest first ▼
-        </button>
+    <div style="margin:0 0 16px 0;text-align:right;">
+        <button id="sort-btn">Sort by Coins 💰</button>
     </div>
 
     <div class="hall-list" id="hall-list">
@@ -216,37 +213,15 @@ footer a:hover {
     </div>
 </div>
 
-    </div>
+       
+    </script>
 
-    <script>
-        const CORRECT_PASSWORD_LOWER = "8ph3nvl7";  // lowercase version for case-insensitive check
+<footer>
+    <p>© Safe Cracking 2026 | Official site</p>
+    Check our <a href="/privacy">Privacy Policy</a>.
+</footer>
+<script>
 
-        // Password check
-document.getElementById("submit-btn").addEventListener("click", () => {
-    const input = document.getElementById("password-input").value.trim();
-    const errorEl = document.getElementById("error");
-    const hintEl = document.getElementById("password-hint");
-
-    if (input.toLowerCase() === CORRECT_PASSWORD_LOWER) {
-        document.getElementById("intro").style.display = "none";
-        document.getElementById("password-section").style.display = "none";
-        document.getElementById("success").style.display = "block";
-        errorEl.textContent = "";
-        hintEl.style.display = "none";  // скрываем подсказку при успехе
-    } else {
-        errorEl.textContent = "Wrong Password, try again";
-        hintEl.style.display = "block";  // показываем подсказку при ошибке
-    }
-});
-
-        // Allow Enter key to submit
-        document.getElementById("password-input").addEventListener("keypress", (e) => {
-            if (e.key === "Enter") {
-                document.getElementById("submit-btn").click();
-            }
-        });
-
-        // FIREBASE DATABASE
 const db = firebase.database();
 
 let players = [];
@@ -255,7 +230,6 @@ let sortMode = "time";
 const container = document.getElementById("hall-list");
 const sortBtn = document.getElementById("sort-btn");
 
-// Загрузка игроков из Firebase
 db.ref("records").once("value").then(snapshot => {
 
     const data = snapshot.val();
@@ -269,13 +243,8 @@ db.ref("records").once("value").then(snapshot => {
 
     renderPlayers();
 
-}).catch(err => {
-    console.error(err);
-    container.innerHTML = "<p>Could not load Hall of Fame.</p>";
 });
 
-
-// Кнопка сортировки
 sortBtn.addEventListener("click", () => {
 
     if (sortMode === "time") {
@@ -290,8 +259,6 @@ sortBtn.addEventListener("click", () => {
 
 });
 
-
-// Отрисовка списка
 function renderPlayers() {
 
     container.innerHTML = "";
@@ -337,7 +304,6 @@ function renderPlayers() {
 
 }
 
-// Формат времени
 function formatTime(ms) {
 
     const h = Math.floor(ms / 3600000);
@@ -349,85 +315,7 @@ function formatTime(ms) {
            s.toString().padStart(2,"0");
 }
 
-
-        // Функция отрисовки
-        function renderHall() {
-            const container = document.getElementById("hall-list");
-            if (!container) return;
-
-            container.innerHTML = "";
-
-            let rowsToShow = [...allRows];
-
-            // По умолчанию новые сверху — переворачиваем массив
-            if (sortNewestFirst) {
-                rowsToShow.reverse();
-            }
-            // Если !sortNewestFirst — оставляем как есть (старые сверху, новые снизу)
-
-            if (rowsToShow.length === 0) {
-                container.innerHTML = "<p>No participants yet. Be the first!</p>";
-                return;
-            }
-
-            rowsToShow.forEach(row => {
-                if (!row.trim()) return;
-
-                const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-
-                const nameRaw  = (cols[2] || "").trim().replace(/^"|"$/g, "") || "Anonymous";
-                const linkRaw  = (cols[3] || "").trim().replace(/^"|"$/g, "") || "";
-                const country  = (cols[4] || "").trim().replace(/^"|"$/g, "") || "";
-
-                let show = true;
-                if (cols.length >= 6) {
-                    const approve = (cols[5] || "").trim().toLowerCase().replace(/^"|"$/g, "");
-                    show = (approve === "yes" || approve === "1" || approve === "true");
-                }
-
-                if (!show) return;
-
-                let datePart = "";
-                if (cols[0]) {
-                    const timestamp = cols[0].trim().replace(/^"|"$/g, "");
-                    const dateStr = timestamp.split(" ")[0];
-
-                    if (dateStr && dateStr.includes(".")) {
-                        const [day, month, year] = dateStr.split(".");
-                        if (day && month && year) {
-                            const months = ["", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                            const m = parseInt(month, 10);
-                            if (m >= 1 && m <= 12) {
-                                datePart = `${day} ${months[m]} ${year}`;
-                            }
-                        }
-                    }
-                }
-
-                let link = linkRaw;
-                if (link && !link.match(/^https?:\/\//i)) {
-                    link = "https://" + link;
-                }
-
-                const display = link 
-                    ? `<a href="${link}" target="_blank" rel="noopener noreferrer">${nameRaw}</a>`
-                    : nameRaw;
-
-                const countryPart = country ? `, <span class="country">${country}</span>` : "";
-                const dateSpan    = datePart  ? `, <span class="date">${datePart}</span>`   : "";
-
-                const div = document.createElement("div");
-                div.className = "player";
-                div.innerHTML = `${display}${countryPart}${dateSpan}`;
-                container.appendChild(div);
-            });
-        }
-    </script>
-
-<footer>
-    <p>© Safe Cracking 2026 | Official site</p>
-    Check our <a href="/privacy">Privacy Policy</a>.
-</footer>
+</script>
 
 </body>
 </html>
